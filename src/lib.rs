@@ -95,6 +95,61 @@ pub fn keysym(
     keysyms.get(column as usize).map(|&keysym| keysym)
 }
 
+/// Translate a keyboard symbol to its approximate ASCII character.
+///
+/// This translation does not involve XKB in any way, and is intended to act
+/// as a fallback for when XKB is not available. This function explicitly
+/// does not support non-Latin alphabets, and is intended to be used as a
+/// fallback for when XKB is not available. Real world use cases should use
+/// `libxkbcommon` instead.
+pub fn key_char(keysym: Keysym, has_control_key: bool) -> Option<char> {
+    // Tell if this fits as a valid ASCII char.
+    let high_bytes = keysym >> 8;
+    if high_bytes != 0 && high_bytes != 0xFF {
+        return None;
+    }
+
+    if !matches!(keysym,
+        KEY_BackSpace..=KEY_Clear
+        | KEY_Return | KEY_Escape | KEY_KP_Space
+        | KEY_KP_Tab | KEY_KP_Enter | KEY_KP_Multiply..=KEY_KP_9
+        | KEY_KP_Equal | KEY_Delete
+    ) {
+        return None;
+    }
+
+    // Convert to ASCII by converting the low byte.
+    let mut ascii_key = match (keysym, high_bytes) {
+        (KEY_KP_Space, _) => b' ',
+        (_, 0xFF) => (keysym & 0x7F) as u8,
+        _ => keysym as u8,
+    };
+
+    // Apply the control key if it makes sense.
+    if has_control_key {
+        match ascii_key {
+            b'@'..=126 | b' ' => {
+                ascii_key &= 0x1F;
+            }
+            b'2' => {
+                ascii_key = b'\0';
+            }
+            b'3'..=b'7' => {
+                ascii_key -= b'3' - 27;
+            }
+            b'8' => {
+                ascii_key = 127;
+            }
+            b'/' => {
+                ascii_key = b'_' & 0x1F;
+            }
+            _ => {}
+        }
+    }
+
+    Some(char::from(ascii_key))
+}
+
 /// Tell whether a keysym is a keypad key.
 pub fn is_keypad_key(keysym: Keysym) -> bool {
     matches!(keysym, KEY_KP_Space..=KEY_KP_Equal)
