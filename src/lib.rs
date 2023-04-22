@@ -36,32 +36,21 @@ pub const NO_SYMBOL: Keysym = 0;
 ///
 /// `min_keycode` can be retrieved from the X11 setup, and `keysyms_per_keycode` and `keysyms` can be
 /// retrieved from the X11 server through the `GetKeyboardMapping` request.
-pub const fn keysym(
+pub fn keysym(
     keycode: KeyCode,
     mut column: u8,
     min_keycode: KeyCode,
     keysyms_per_keycode: u8,
     keysyms: &[Keysym],
 ) -> Option<Keysym> {
-    macro_rules! sl_get {
-        ($slice:ident[$index:expr]) => {{
-            let index = $index as usize;
-            let slice = $slice;
-
-            if index >= slice.len() {
-                return None;
-            }
-
-            slice[index]
-        }};
-    }
-
     if column >= keysyms_per_keycode && column > 3 {
         return None;
     }
 
     // Get the keysyms to consider.
     let start = (keycode - min_keycode) as usize * keysyms_per_keycode as usize;
+    let end = start + keysyms_per_keycode as usize;
+    let keysyms = &keysyms[start..end];
 
     // See which keysym we should get.
     let mut per = keysyms_per_keycode as usize;
@@ -77,7 +66,7 @@ pub const fn keysym(
                 }
 
                 // If the keysym we're looking at isn't NO_SYMBOL, we're done.
-                if keysyms[per + start - 1] != NO_SYMBOL {
+                if keysyms[per - 1] != NO_SYMBOL {
                     break;
                 }
 
@@ -94,14 +83,16 @@ pub const fn keysym(
 
         // Convert to upper/lower ourselves if the keysym doesn't support it.
         let alt_column = (column | 1) as usize;
-        if per <= alt_column || keysyms[start + alt_column] == NO_SYMBOL {
+        if per <= alt_column || keysyms[alt_column] == NO_SYMBOL {
             // Convert to upper/lower case.
-            let (upper, lower) = convert_case(sl_get!(keysyms[per + (column as usize & !1)]));
+            let (upper, lower) = convert_case(*keysyms.get(column as usize & !1)?);
             return Some(if column & 1 == 0 { upper } else { lower });
         }
     }
 
-    Some(sl_get!(keysyms[start + column as usize]))
+    // Helps us lower the MSRV.
+    #[allow(clippy::map_clone)]
+    keysyms.get(column as usize).map(|&keysym| keysym)
 }
 
 /// Translate a keyboard symbol to its approximate ASCII character.

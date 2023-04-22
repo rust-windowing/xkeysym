@@ -65,7 +65,7 @@ use super::Keysym;
 /// 
 /// The output of this function is not stable and is intended for debugging purposes.
 #[allow(unreachable_patterns)]
-pub fn name(keysym: Keysym) -> Option<&'static str> {
+pub const fn name(keysym: Keysym) -> Option<&'static str> {
     match keysym {
 "
     .to_string();
