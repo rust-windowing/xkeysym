@@ -7,7 +7,7 @@ description = "A library for working with X11 keysyms"
 repository = "https://github.com/notgull/xkeysym"
 license = "BSL-1.0"
 keywords = ["x11", "keysym", "keysyms"]
-rust-version = "1.46.0"
+rust-version = "1.48.0"
 
 [dev-dependencies]
 bytemuck = "1.12.3"
