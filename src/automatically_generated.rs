@@ -2562,7 +2562,7 @@ pub const KEY_block: Keysym = 0x100000fc;
 /// 
 /// The output of this function is not stable and is intended for debugging purposes.
 #[allow(unreachable_patterns)]
-pub fn name(keysym: Keysym) -> Option<&'static str> {
+pub const fn name(keysym: Keysym) -> Option<&'static str> {
     match keysym {
         KEY_VoidSymbol => Some("XK_VoidSymbol"),
         KEY_BackSpace => Some("XK_BackSpace"),

@@ -151,37 +151,37 @@ pub fn key_char(keysym: Keysym, has_control_key: bool) -> Option<char> {
 }
 
 /// Tell whether a keysym is a keypad key.
-pub fn is_keypad_key(keysym: Keysym) -> bool {
+pub const fn is_keypad_key(keysym: Keysym) -> bool {
     matches!(keysym, KEY_KP_Space..=KEY_KP_Equal)
 }
 
 /// Tell whether a keysym is a private keypad key.
-pub fn is_private_keypad_key(keysym: Keysym) -> bool {
+pub const fn is_private_keypad_key(keysym: Keysym) -> bool {
     matches!(keysym, 0x11000000..=0x1100FFFF)
 }
 
 /// Tell whether a keysym is a cursor key.
-pub fn is_cursor_key(keysym: Keysym) -> bool {
+pub const fn is_cursor_key(keysym: Keysym) -> bool {
     matches!(keysym, KEY_Home..=KEY_Select)
 }
 
 /// Tell whether a keysym is a PF key.
-pub fn is_pf_key(keysym: Keysym) -> bool {
+pub const fn is_pf_key(keysym: Keysym) -> bool {
     matches!(keysym, KEY_KP_F1..=KEY_KP_F4)
 }
 
 /// Tell whether a keysym is a function key.
-pub fn is_function_key(keysym: Keysym) -> bool {
+pub const fn is_function_key(keysym: Keysym) -> bool {
     matches!(keysym, KEY_F1..=KEY_F35)
 }
 
 /// Tell whether a key is a miscellaneous function key.
-pub fn is_misc_function_key(keysym: Keysym) -> bool {
+pub const fn is_misc_function_key(keysym: Keysym) -> bool {
     matches!(keysym, KEY_Select..=KEY_Break)
 }
 
 /// Tell whether a key is a modifier key.
-pub fn is_modifier_key(keysym: Keysym) -> bool {
+pub const fn is_modifier_key(keysym: Keysym) -> bool {
     matches!(
         keysym,
         KEY_Shift_L..=KEY_Hyper_R
@@ -192,7 +192,7 @@ pub fn is_modifier_key(keysym: Keysym) -> bool {
 }
 
 /// Convert a keysym to its uppercase/lowercase equivalents.
-fn convert_case(keysym: Keysym) -> (Keysym, Keysym) {
+const fn convert_case(keysym: Keysym) -> (Keysym, Keysym) {
     // by default, they're both the regular keysym
     let (mut upper, mut lower) = (keysym, keysym);
 
