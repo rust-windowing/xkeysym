@@ -36,21 +36,32 @@ pub const NO_SYMBOL: Keysym = 0;
 ///
 /// `min_keycode` can be retrieved from the X11 setup, and `keysyms_per_keycode` and `keysyms` can be
 /// retrieved from the X11 server through the `GetKeyboardMapping` request.
-pub fn keysym(
+pub const fn keysym(
     keycode: KeyCode,
     mut column: u8,
     min_keycode: KeyCode,
     keysyms_per_keycode: u8,
     keysyms: &[Keysym],
 ) -> Option<Keysym> {
+    macro_rules! sl_get {
+        ($slice:ident[$index:expr]) => {{
+            let index = $index as usize;
+            let slice = $slice;
+
+            if index >= slice.len() {
+                return None;
+            }
+
+            slice[index]
+        }};
+    }
+
     if column >= keysyms_per_keycode && column > 3 {
         return None;
     }
 
     // Get the keysyms to consider.
     let start = (keycode - min_keycode) as usize * keysyms_per_keycode as usize;
-    let end = start + keysyms_per_keycode as usize;
-    let keysyms = &keysyms[start..end];
 
     // See which keysym we should get.
     let mut per = keysyms_per_keycode as usize;
@@ -66,7 +77,7 @@ pub fn keysym(
                 }
 
                 // If the keysym we're looking at isn't NO_SYMBOL, we're done.
-                if keysyms[per - 1] != NO_SYMBOL {
+                if keysyms[per + start - 1] != NO_SYMBOL {
                     break;
                 }
 
@@ -83,16 +94,14 @@ pub fn keysym(
 
         // Convert to upper/lower ourselves if the keysym doesn't support it.
         let alt_column = (column | 1) as usize;
-        if per <= alt_column || keysyms[alt_column] == NO_SYMBOL {
+        if per <= alt_column || keysyms[start + alt_column] == NO_SYMBOL {
             // Convert to upper/lower case.
-            let (upper, lower) = convert_case(*keysyms.get(column as usize & !1)?);
+            let (upper, lower) = convert_case(sl_get!(keysyms[per + (column as usize & !1)]));
             return Some(if column & 1 == 0 { upper } else { lower });
         }
     }
 
-    // Helps us lower the MSRV.
-    #[allow(clippy::map_clone)]
-    keysyms.get(column as usize).map(|&keysym| keysym)
+    Some(sl_get!(keysyms[start + column as usize]))
 }
 
 /// Translate a keyboard symbol to its approximate ASCII character.
@@ -151,37 +160,37 @@ pub fn key_char(keysym: Keysym, has_control_key: bool) -> Option<char> {
 }
 
 /// Tell whether a keysym is a keypad key.
-pub fn is_keypad_key(keysym: Keysym) -> bool {
+pub const fn is_keypad_key(keysym: Keysym) -> bool {
     matches!(keysym, KEY_KP_Space..=KEY_KP_Equal)
 }
 
 /// Tell whether a keysym is a private keypad key.
-pub fn is_private_keypad_key(keysym: Keysym) -> bool {
+pub const fn is_private_keypad_key(keysym: Keysym) -> bool {
     matches!(keysym, 0x11000000..=0x1100FFFF)
 }
 
 /// Tell whether a keysym is a cursor key.
-pub fn is_cursor_key(keysym: Keysym) -> bool {
+pub const fn is_cursor_key(keysym: Keysym) -> bool {
     matches!(keysym, KEY_Home..=KEY_Select)
 }
 
 /// Tell whether a keysym is a PF key.
-pub fn is_pf_key(keysym: Keysym) -> bool {
+pub const fn is_pf_key(keysym: Keysym) -> bool {
     matches!(keysym, KEY_KP_F1..=KEY_KP_F4)
 }
 
 /// Tell whether a keysym is a function key.
-pub fn is_function_key(keysym: Keysym) -> bool {
+pub const fn is_function_key(keysym: Keysym) -> bool {
     matches!(keysym, KEY_F1..=KEY_F35)
 }
 
 /// Tell whether a key is a miscellaneous function key.
-pub fn is_misc_function_key(keysym: Keysym) -> bool {
+pub const fn is_misc_function_key(keysym: Keysym) -> bool {
     matches!(keysym, KEY_Select..=KEY_Break)
 }
 
 /// Tell whether a key is a modifier key.
-pub fn is_modifier_key(keysym: Keysym) -> bool {
+pub const fn is_modifier_key(keysym: Keysym) -> bool {
     matches!(
         keysym,
         KEY_Shift_L..=KEY_Hyper_R
@@ -192,7 +201,7 @@ pub fn is_modifier_key(keysym: Keysym) -> bool {
 }
 
 /// Convert a keysym to its uppercase/lowercase equivalents.
-fn convert_case(keysym: Keysym) -> (Keysym, Keysym) {
+const fn convert_case(keysym: Keysym) -> (Keysym, Keysym) {
     // by default, they're both the regular keysym
     let (mut upper, mut lower) = (keysym, keysym);
 
