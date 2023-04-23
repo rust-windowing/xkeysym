@@ -110,17 +110,17 @@ pub fn key_char(keysym: Keysym, has_control_key: bool) -> Option<char> {
     }
 
     if !matches!(keysym,
-        KEY_BackSpace..=KEY_Clear
-        | KEY_Return | KEY_Escape | KEY_KP_Space
-        | KEY_KP_Tab | KEY_KP_Enter | KEY_KP_Multiply..=KEY_KP_9
-        | KEY_KP_Equal | KEY_Delete
+        key::BackSpace..=key::Clear
+        | key::Return | key::Escape | key::KP_Space
+        | key::KP_Tab | key::KP_Enter | key::KP_Multiply..=key::KP_9
+        | key::KP_Equal | key::Delete
     ) {
         return None;
     }
 
     // Convert to ASCII by converting the low byte.
     let mut ascii_key = match (keysym, high_bytes) {
-        (KEY_KP_Space, _) => b' ',
+        (key::KP_Space, _) => b' ',
         (_, 0xFF) => (keysym & 0x7F) as u8,
         _ => keysym as u8,
     };
@@ -152,7 +152,7 @@ pub fn key_char(keysym: Keysym, has_control_key: bool) -> Option<char> {
 
 /// Tell whether a keysym is a keypad key.
 pub const fn is_keypad_key(keysym: Keysym) -> bool {
-    matches!(keysym, KEY_KP_Space..=KEY_KP_Equal)
+    matches!(keysym, key::KP_Space..=key::KP_Equal)
 }
 
 /// Tell whether a keysym is a private keypad key.
@@ -162,32 +162,32 @@ pub const fn is_private_keypad_key(keysym: Keysym) -> bool {
 
 /// Tell whether a keysym is a cursor key.
 pub const fn is_cursor_key(keysym: Keysym) -> bool {
-    matches!(keysym, KEY_Home..=KEY_Select)
+    matches!(keysym, key::Home..=key::Select)
 }
 
 /// Tell whether a keysym is a PF key.
 pub const fn is_pf_key(keysym: Keysym) -> bool {
-    matches!(keysym, KEY_KP_F1..=KEY_KP_F4)
+    matches!(keysym, key::KP_F1..=key::KP_F4)
 }
 
 /// Tell whether a keysym is a function key.
 pub const fn is_function_key(keysym: Keysym) -> bool {
-    matches!(keysym, KEY_F1..=KEY_F35)
+    matches!(keysym, key::F1..=key::F35)
 }
 
 /// Tell whether a key is a miscellaneous function key.
 pub const fn is_misc_function_key(keysym: Keysym) -> bool {
-    matches!(keysym, KEY_Select..=KEY_Break)
+    matches!(keysym, key::Select..=key::Break)
 }
 
 /// Tell whether a key is a modifier key.
 pub const fn is_modifier_key(keysym: Keysym) -> bool {
     matches!(
         keysym,
-        KEY_Shift_L..=KEY_Hyper_R
-         | KEY_ISO_Lock..=KEY_ISO_Level5_Lock
-         | KEY_Mode_switch
-         | KEY_Num_Lock
+        key::Shift_L..=key::Hyper_R
+         | key::ISO_Lock..=key::ISO_Level5_Lock
+         | key::Mode_switch
+         | key::Num_Lock
     )
 }
 
@@ -199,54 +199,54 @@ const fn convert_case(keysym: Keysym) -> (Keysym, Keysym) {
     // tell which language it belongs to
     #[allow(non_upper_case_globals)]
     match keysym {
-        KEY_A..=KEY_Z => lower += KEY_a - KEY_A,
-        KEY_a..=KEY_z => upper -= KEY_a - KEY_A,
-        KEY_Agrave..=KEY_Odiaeresis => lower += KEY_agrave - KEY_Agrave,
-        KEY_agrave..=KEY_odiaeresis => upper -= KEY_agrave - KEY_Agrave,
-        KEY_Ooblique..=KEY_Thorn => lower += KEY_oslash - KEY_Ooblique,
-        KEY_oslash..=KEY_thorn => upper -= KEY_oslash - KEY_Ooblique,
-        KEY_Aogonek => lower = KEY_aogonek,
-        KEY_aogonek => upper = KEY_Aogonek,
-        KEY_Lstroke..=KEY_Sacute => lower += KEY_lstroke - KEY_Lstroke,
-        KEY_lstroke..=KEY_sacute => upper -= KEY_lstroke - KEY_Lstroke,
-        KEY_Scaron..=KEY_Zacute => lower += KEY_scaron - KEY_Scaron,
-        KEY_scaron..=KEY_zacute => upper -= KEY_scaron - KEY_Scaron,
-        KEY_Zcaron..=KEY_Zabovedot => lower += KEY_zcaron - KEY_Zcaron,
-        KEY_zcaron..=KEY_zabovedot => upper -= KEY_zcaron - KEY_Zcaron,
-        KEY_Racute..=KEY_Tcedilla => lower += KEY_racute - KEY_Racute,
-        KEY_racute..=KEY_tcedilla => upper -= KEY_racute - KEY_Racute,
-        KEY_Hstroke..=KEY_Hcircumflex => lower += KEY_hstroke - KEY_Hstroke,
-        KEY_hstroke..=KEY_hcircumflex => upper -= KEY_hstroke - KEY_Hstroke,
-        KEY_Gbreve..=KEY_Jcircumflex => lower += KEY_gbreve - KEY_Gbreve,
-        KEY_gbreve..=KEY_jcircumflex => upper -= KEY_gbreve - KEY_Gbreve,
-        KEY_Cabovedot..=KEY_Scircumflex => lower += KEY_cabovedot - KEY_Cabovedot,
-        KEY_cabovedot..=KEY_scircumflex => upper -= KEY_cabovedot - KEY_Cabovedot,
-        KEY_Rcedilla..=KEY_Tslash => lower += KEY_rcedilla - KEY_Rcedilla,
-        KEY_rcedilla..=KEY_tslash => upper -= KEY_rcedilla - KEY_Rcedilla,
-        KEY_ENG => lower = KEY_eng,
-        KEY_eng => upper = KEY_ENG,
-        KEY_Amacron..=KEY_Umacron => lower += KEY_amacron - KEY_Amacron,
-        KEY_amacron..=KEY_umacron => upper -= KEY_amacron - KEY_Amacron,
-        KEY_Serbian_DJE..=KEY_Serbian_DZE => lower -= KEY_Serbian_DJE - KEY_Serbian_dje,
-        KEY_Serbian_dje..=KEY_Serbian_dze => upper += KEY_Serbian_DJE - KEY_Serbian_dje,
-        KEY_Cyrillic_YU..=KEY_Cyrillic_HARDSIGN => lower -= KEY_Cyrillic_YU - KEY_Cyrillic_yu,
-        KEY_Cyrillic_yu..=KEY_Cyrillic_hardsign => upper += KEY_Cyrillic_YU - KEY_Cyrillic_yu,
-        KEY_Greek_ALPHAaccent..=KEY_Greek_OMEGAaccent => {
-            lower += KEY_Greek_alphaaccent - KEY_Greek_ALPHAaccent
+        key::A..=key::Z => lower += key::a - key::A,
+        key::a..=key::z => upper -= key::a - key::A,
+        key::Agrave..=key::Odiaeresis => lower += key::agrave - key::Agrave,
+        key::agrave..=key::odiaeresis => upper -= key::agrave - key::Agrave,
+        key::Ooblique..=key::Thorn => lower += key::oslash - key::Ooblique,
+        key::oslash..=key::thorn => upper -= key::oslash - key::Ooblique,
+        key::Aogonek => lower = key::aogonek,
+        key::aogonek => upper = key::Aogonek,
+        key::Lstroke..=key::Sacute => lower += key::lstroke - key::Lstroke,
+        key::lstroke..=key::sacute => upper -= key::lstroke - key::Lstroke,
+        key::Scaron..=key::Zacute => lower += key::scaron - key::Scaron,
+        key::scaron..=key::zacute => upper -= key::scaron - key::Scaron,
+        key::Zcaron..=key::Zabovedot => lower += key::zcaron - key::Zcaron,
+        key::zcaron..=key::zabovedot => upper -= key::zcaron - key::Zcaron,
+        key::Racute..=key::Tcedilla => lower += key::racute - key::Racute,
+        key::racute..=key::tcedilla => upper -= key::racute - key::Racute,
+        key::Hstroke..=key::Hcircumflex => lower += key::hstroke - key::Hstroke,
+        key::hstroke..=key::hcircumflex => upper -= key::hstroke - key::Hstroke,
+        key::Gbreve..=key::Jcircumflex => lower += key::gbreve - key::Gbreve,
+        key::gbreve..=key::jcircumflex => upper -= key::gbreve - key::Gbreve,
+        key::Cabovedot..=key::Scircumflex => lower += key::cabovedot - key::Cabovedot,
+        key::cabovedot..=key::scircumflex => upper -= key::cabovedot - key::Cabovedot,
+        key::Rcedilla..=key::Tslash => lower += key::rcedilla - key::Rcedilla,
+        key::rcedilla..=key::tslash => upper -= key::rcedilla - key::Rcedilla,
+        key::ENG => lower = key::eng,
+        key::eng => upper = key::ENG,
+        key::Amacron..=key::Umacron => lower += key::amacron - key::Amacron,
+        key::amacron..=key::umacron => upper -= key::amacron - key::Amacron,
+        key::Serbian_DJE..=key::Serbian_DZE => lower -= key::Serbian_DJE - key::Serbian_dje,
+        key::Serbian_dje..=key::Serbian_dze => upper += key::Serbian_DJE - key::Serbian_dje,
+        key::Cyrillic_YU..=key::Cyrillic_HARDSIGN => lower -= key::Cyrillic_YU - key::Cyrillic_yu,
+        key::Cyrillic_yu..=key::Cyrillic_hardsign => upper += key::Cyrillic_YU - key::Cyrillic_yu,
+        key::Greek_ALPHAaccent..=key::Greek_OMEGAaccent => {
+            lower += key::Greek_alphaaccent - key::Greek_ALPHAaccent
         }
-        KEY_Greek_alphaaccent..=KEY_Greek_omegaaccent
+        key::Greek_alphaaccent..=key::Greek_omegaaccent
             if !matches!(
                 keysym,
-                KEY_Greek_iotaaccentdieresis | KEY_Greek_upsilonaccentdieresis
+                key::Greek_iotaaccentdieresis | key::Greek_upsilonaccentdieresis
             ) =>
         {
-            upper -= KEY_Greek_alphaaccent - KEY_Greek_ALPHAaccent
+            upper -= key::Greek_alphaaccent - key::Greek_ALPHAaccent
         }
-        KEY_Greek_ALPHA..=KEY_Greek_OMEGA => lower += KEY_Greek_alpha - KEY_Greek_ALPHA,
-        KEY_Greek_alpha..=KEY_Greek_omega if !matches!(keysym, KEY_Greek_finalsmallsigma) => {
-            upper -= KEY_Greek_alpha - KEY_Greek_ALPHA
+        key::Greek_ALPHA..=key::Greek_OMEGA => lower += key::Greek_alpha - key::Greek_ALPHA,
+        key::Greek_alpha..=key::Greek_omega if !matches!(keysym, key::Greek_finalsmallsigma) => {
+            upper -= key::Greek_alpha - key::Greek_ALPHA
         }
-        KEY_Armenian_AYB..=KEY_Armenian_fe => {
+        key::Armenian_AYB..=key::Armenian_fe => {
             lower |= 1;
             upper &= !1;
         }

@@ -56,7 +56,11 @@ fn main() -> Result<()> {
 //         https://www.boost.org/LICENSE_1_0.txt)
 
 use super::Keysym;
-        "
+
+/// A list of keyboard symbols.
+pub mod key {{
+    use super::Keysym;
+"
     )?;
 
     // The matcher for dumping the keysym's name.
@@ -140,24 +144,32 @@ pub const fn name(keysym: Keysym) -> Option<&'static str> {
                 let prefix = parts.next().unwrap();
                 let symbol = parts.next().unwrap();
 
+                let needs_underscore = symbol.starts_with(|c: char| c.is_ascii_digit());
+
                 let keysym_name = format!(
-                    "KEY_{}{}{}",
+                    "{}{}{}",
                     heck::AsShoutySnakeCase(prefix),
-                    if prefix.is_empty() { "" } else { "_" },
-                    symbol
+                    if prefix.is_empty() && !needs_underscore {
+                        ""
+                    } else {
+                        "_"
+                    },
+                    &symbol
                 );
+
+                writeln!(outfile, "    #[doc(alias = \"{}\")]", &name)?;
 
                 // write out an entry for it
                 writeln!(
                     outfile,
-                    "pub const {}: Keysym = {:#x};",
+                    "    pub const {}: Keysym = {:#x};",
                     &keysym_name, hex_value
                 )?;
 
                 // Write a match entry for it.
                 writeln!(
                     keysym_dump,
-                    "        {} => Some(\"{}\"),",
+                    "        key::{} => Some(\"{}\"),",
                     &keysym_name, &name
                 )
                 .unwrap();
@@ -165,6 +177,8 @@ pub const fn name(keysym: Keysym) -> Option<&'static str> {
 
             anyhow::Ok(())
         })?;
+
+    writeln!(outfile, "}}")?;
 
     // Write out the keysym dump.
     keysym_dump.push_str(
