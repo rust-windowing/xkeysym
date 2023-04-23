@@ -10,6 +10,8 @@
 #![allow(non_upper_case_globals)]
 #![forbid(unsafe_code, rust_2018_idioms)]
 
+use core::fmt;
+
 macro_rules! matches {
     ($expr:expr, $( $pat:pat )|+ $( if $guard: expr )?) => {
         match $expr {
@@ -27,7 +29,7 @@ pub use automatically_generated::*;
 pub type RawKeyCode = u8;
 
 /// The keyboard code, often corresponding to a physical key.
-/// 
+///
 /// Keyboard events usually return this type directly, and leave it to be the responsibility of the
 /// user to convert it to a keyboard symbol.
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Default, Debug)]
@@ -65,12 +67,21 @@ impl From<KeyCode> for RawKeyCode {
 pub type RawKeysym = u32;
 
 /// The keyboard symbol, often corresponding to a character.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Default, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[cfg_attr(feature = "bytemuck", derive(bytemuck::Pod, bytemuck::Zeroable))]
 #[repr(transparent)]
 pub struct Keysym(RawKeysym);
+
+impl fmt::Debug for Keysym {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.name() {
+            Some(name) => f.write_str(name),
+            None => write!(f, "{:#x}", self.0),
+        }
+    }
+}
 
 impl Keysym {
     /// Create a new `Keysym` from a raw keyboard symbol.
@@ -81,6 +92,111 @@ impl Keysym {
     /// Get the raw keyboard symbol.
     pub const fn raw(self) -> RawKeysym {
         self.0
+    }
+
+    /// Get a string corresponding to the name of this keyboard symbol.
+    ///
+    /// The output of this function is not stable and is intended for debugging purposes.
+    pub const fn name(self) -> Option<&'static str> {
+        name(self)
+    }
+
+    /// Tell whether a keysym is a keypad key.
+    pub const fn is_keypad_key(self) -> bool {
+        matches!(self.0, key::KP_Space..=key::KP_Equal)
+    }
+
+    /// Tell whether a keysym is a private keypad key.
+    pub const fn is_private_keypad_key(self) -> bool {
+        matches!(self.0, 0x11000000..=0x1100FFFF)
+    }
+
+    /// Tell whether a keysym is a cursor key.
+    pub const fn is_cursor_key(self) -> bool {
+        matches!(self.0, key::Home..=key::Select)
+    }
+
+    /// Tell whether a keysym is a PF key.
+    pub const fn is_pf_key(self) -> bool {
+        matches!(self.0, key::KP_F1..=key::KP_F4)
+    }
+
+    /// Tell whether a keysym is a function key.
+    pub const fn is_function_key(self) -> bool {
+        matches!(self.0, key::F1..=key::F35)
+    }
+
+    /// Tell whether a key is a miscellaneous function key.
+    pub const fn is_misc_function_key(self) -> bool {
+        matches!(self.0, key::Select..=key::Break)
+    }
+
+    /// Tell whether a key is a modifier key.
+    pub const fn is_modifier_key(self) -> bool {
+        matches!(
+            self.0,
+            key::Shift_L..=key::Hyper_R
+            | key::ISO_Lock..=key::ISO_Level5_Lock
+            | key::Mode_switch
+            | key::Num_Lock
+        )
+    }
+
+    /// Translate a keyboard symbol to its approximate ASCII character.
+    ///
+    /// This translation does not involve XKB in any way, and is intended to act
+    /// as a fallback for when XKB is not available. This function explicitly
+    /// does not support non-Latin alphabets, and is intended to be used as a
+    /// fallback for when XKB is not available. Real world use cases should use
+    /// `libxkbcommon` instead.
+    pub fn key_char(self, has_control_key: bool) -> Option<char> {
+        let keysym = self.0;
+
+        // Tell if this fits as a valid ASCII char.
+        let high_bytes = keysym >> 8;
+        if high_bytes != 0 && high_bytes != 0xFF {
+            return None;
+        }
+
+        if !matches!(keysym,
+            key::BackSpace..=key::Clear
+            | key::Return | key::Escape | key::KP_Space
+            | key::KP_Tab | key::KP_Enter | key::KP_Multiply..=key::KP_9
+            | key::KP_Equal | key::Delete
+        ) {
+            return None;
+        }
+
+        // Convert to ASCII by converting the low byte.
+        let mut ascii_key = match (keysym, high_bytes) {
+            (key::KP_Space, _) => b' ',
+            (_, 0xFF) => (keysym & 0x7F) as u8,
+            _ => keysym as u8,
+        };
+
+        // Apply the control key if it makes sense.
+        if has_control_key {
+            match ascii_key {
+                b'@'..=126 | b' ' => {
+                    ascii_key &= 0x1F;
+                }
+                b'2' => {
+                    ascii_key = b'\0';
+                }
+                b'3'..=b'7' => {
+                    ascii_key -= b'3' - 27;
+                }
+                b'8' => {
+                    ascii_key = 127;
+                }
+                b'/' => {
+                    ascii_key = b'_' & 0x1F;
+                }
+                _ => {}
+            }
+        }
+
+        Some(char::from(ascii_key))
     }
 }
 
@@ -148,104 +264,6 @@ pub fn keysym(
     // Helps us lower the MSRV.
     #[allow(clippy::map_clone)]
     keysyms.get(column as usize).map(|&keysym| Keysym(keysym))
-}
-
-/// Translate a keyboard symbol to its approximate ASCII character.
-///
-/// This translation does not involve XKB in any way, and is intended to act
-/// as a fallback for when XKB is not available. This function explicitly
-/// does not support non-Latin alphabets, and is intended to be used as a
-/// fallback for when XKB is not available. Real world use cases should use
-/// `libxkbcommon` instead.
-pub fn key_char(keysym: Keysym, has_control_key: bool) -> Option<char> {
-    let keysym = keysym.0;
-
-    // Tell if this fits as a valid ASCII char.
-    let high_bytes = keysym >> 8;
-    if high_bytes != 0 && high_bytes != 0xFF {
-        return None;
-    }
-
-    if !matches!(keysym,
-        key::BackSpace..=key::Clear
-        | key::Return | key::Escape | key::KP_Space
-        | key::KP_Tab | key::KP_Enter | key::KP_Multiply..=key::KP_9
-        | key::KP_Equal | key::Delete
-    ) {
-        return None;
-    }
-
-    // Convert to ASCII by converting the low byte.
-    let mut ascii_key = match (keysym, high_bytes) {
-        (key::KP_Space, _) => b' ',
-        (_, 0xFF) => (keysym & 0x7F) as u8,
-        _ => keysym as u8,
-    };
-
-    // Apply the control key if it makes sense.
-    if has_control_key {
-        match ascii_key {
-            b'@'..=126 | b' ' => {
-                ascii_key &= 0x1F;
-            }
-            b'2' => {
-                ascii_key = b'\0';
-            }
-            b'3'..=b'7' => {
-                ascii_key -= b'3' - 27;
-            }
-            b'8' => {
-                ascii_key = 127;
-            }
-            b'/' => {
-                ascii_key = b'_' & 0x1F;
-            }
-            _ => {}
-        }
-    }
-
-    Some(char::from(ascii_key))
-}
-
-/// Tell whether a keysym is a keypad key.
-pub const fn is_keypad_key(keysym: Keysym) -> bool {
-    matches!(keysym.0, key::KP_Space..=key::KP_Equal)
-}
-
-/// Tell whether a keysym is a private keypad key.
-pub const fn is_private_keypad_key(keysym: Keysym) -> bool {
-    matches!(keysym.0, 0x11000000..=0x1100FFFF)
-}
-
-/// Tell whether a keysym is a cursor key.
-pub const fn is_cursor_key(keysym: Keysym) -> bool {
-    matches!(keysym.0, key::Home..=key::Select)
-}
-
-/// Tell whether a keysym is a PF key.
-pub const fn is_pf_key(keysym: Keysym) -> bool {
-    matches!(keysym.0, key::KP_F1..=key::KP_F4)
-}
-
-/// Tell whether a keysym is a function key.
-pub const fn is_function_key(keysym: Keysym) -> bool {
-    matches!(keysym.0, key::F1..=key::F35)
-}
-
-/// Tell whether a key is a miscellaneous function key.
-pub const fn is_misc_function_key(keysym: Keysym) -> bool {
-    matches!(keysym.0, key::Select..=key::Break)
-}
-
-/// Tell whether a key is a modifier key.
-pub const fn is_modifier_key(keysym: Keysym) -> bool {
-    matches!(
-        keysym.0,
-        key::Shift_L..=key::Hyper_R
-         | key::ISO_Lock..=key::ISO_Level5_Lock
-         | key::Mode_switch
-         | key::Num_Lock
-    )
 }
 
 /// Convert a keysym to its uppercase/lowercase equivalents.

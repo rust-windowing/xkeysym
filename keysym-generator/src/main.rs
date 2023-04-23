@@ -68,11 +68,8 @@ pub mod key {{
 
     // The matcher for dumping the keysym's name.
     let mut keysym_dump = "
-/// Get the name of a keysym.
-/// 
-/// The output of this function is not stable and is intended for debugging purposes.
 #[allow(unreachable_patterns)]
-pub const fn name(keysym: Keysym) -> Option<&'static str> {
+pub(crate) const fn name(keysym: Keysym) -> Option<&'static str> {
     match keysym {
 "
     .to_string();
@@ -170,11 +167,7 @@ pub const fn name(keysym: Keysym) -> Option<&'static str> {
                 )?;
 
                 // Write an IMPL for it.
-                writeln!(
-                    keysym_items,
-                    "    #[doc(alias = \"{}\")]",
-                    &name
-                )?;
+                writeln!(keysym_items, "    #[doc(alias = \"{}\")]", &name)?;
                 writeln!(
                     keysym_items,
                     "    pub const {}: Keysym = Keysym(key::{});",

@@ -111,7 +111,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 );
 
                 // Print the name of the keysym.
-                match keysym.and_then(xkeysym::name) {
+                match keysym.and_then(xkeysym::Keysym::name) {
                     Some(name) => println!("{name}"),
                     None => println!("Unknown keysym"),
                 }

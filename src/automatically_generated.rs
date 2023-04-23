@@ -10213,11 +10213,8 @@ impl Keysym {
 }
 
 
-/// Get the name of a keysym.
-/// 
-/// The output of this function is not stable and is intended for debugging purposes.
 #[allow(unreachable_patterns)]
-pub const fn name(keysym: Keysym) -> Option<&'static str> {
+pub(crate) const fn name(keysym: Keysym) -> Option<&'static str> {
     match keysym {
         Keysym::VoidSymbol => Some("XK_VoidSymbol"),
         Keysym::BackSpace => Some("XK_BackSpace"),
