@@ -103,9 +103,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // Translate the keycode to a symbol.
                 let keycode = kpe.detail;
                 let keysym = xkeysym::keysym(
-                    keycode,
+                    keycode.into(),
                     0,
-                    conn.setup().min_keycode,
+                    conn.setup().min_keycode.into(),
                     mapping.keysyms_per_keycode,
                     mapping.keysyms.as_slice(),
                 );
