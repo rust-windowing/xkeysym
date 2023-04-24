@@ -212,6 +212,18 @@ impl Keysym {
     }
 }
 
+impl From<u32> for Keysym {
+    fn from(raw: u32) -> Self {
+        Self(raw)
+    }
+}
+
+impl From<Keysym> for u32 {
+    fn from(keysym: Keysym) -> Self {
+        keysym.0
+    }
+}
+
 /// The "empty" keyboard symbol.
 pub const NO_SYMBOL: Keysym = Keysym(0);
 
