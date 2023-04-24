@@ -63,6 +63,18 @@ impl From<KeyCode> for RawKeyCode {
     }
 }
 
+impl From<u16> for KeyCode {
+    fn from(raw: u16) -> Self {
+        Self::new(raw as RawKeyCode)
+    }
+}
+
+impl From<KeyCode> for u16 {
+    fn from(keycode: KeyCode) -> Self {
+        keycode.raw() as u16
+    }
+}
+
 impl From<u8> for KeyCode {
     fn from(raw: u8) -> Self {
         Self::new(raw as RawKeyCode)
