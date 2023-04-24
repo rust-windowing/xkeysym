@@ -57,19 +57,19 @@ fn main() -> Result<()> {
 
 use super::Keysym;
 
-/// A list of keyboard symbols.
+/// A list of raw keyboard symbols.
 pub mod key {{
-    use super::Keysym;
+    use crate::RawKeysym;
 "
     )?;
 
+    // Items on the keysym type.
+    let mut keysym_items = "impl Keysym {\n".to_string();
+
     // The matcher for dumping the keysym's name.
     let mut keysym_dump = "
-/// Get the name of a keysym.
-/// 
-/// The output of this function is not stable and is intended for debugging purposes.
 #[allow(unreachable_patterns)]
-pub const fn name(keysym: Keysym) -> Option<&'static str> {
+pub(crate) const fn name(keysym: Keysym) -> Option<&'static str> {
     match keysym {
 "
     .to_string();
@@ -162,14 +162,22 @@ pub const fn name(keysym: Keysym) -> Option<&'static str> {
                 // write out an entry for it
                 writeln!(
                     outfile,
-                    "    pub const {}: Keysym = {:#x};",
+                    "    pub const {}: RawKeysym = {:#x};",
                     &keysym_name, hex_value
+                )?;
+
+                // Write an IMPL for it.
+                writeln!(keysym_items, "    #[doc(alias = \"{}\")]", &name)?;
+                writeln!(
+                    keysym_items,
+                    "    pub const {}: Keysym = Keysym(key::{});",
+                    &keysym_name, &keysym_name
                 )?;
 
                 // Write a match entry for it.
                 writeln!(
                     keysym_dump,
-                    "        key::{} => Some(\"{}\"),",
+                    "        Keysym::{} => Some(\"{}\"),",
                     &keysym_name, &name
                 )
                 .unwrap();
@@ -180,6 +188,9 @@ pub const fn name(keysym: Keysym) -> Option<&'static str> {
 
     writeln!(outfile, "}}")?;
 
+    // Write out the items.
+    keysym_items.push_str("}\n");
+
     // Write out the keysym dump.
     keysym_dump.push_str(
         "
@@ -188,7 +199,7 @@ pub const fn name(keysym: Keysym) -> Option<&'static str> {
 }",
     );
 
-    writeln!(outfile, "{keysym_dump}",)?;
+    writeln!(outfile, "{keysym_items}\n{keysym_dump}",)?;
 
     Ok(())
 }
