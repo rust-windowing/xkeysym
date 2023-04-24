@@ -26,7 +26,7 @@ mod automatically_generated;
 pub use automatically_generated::*;
 
 /// The type of a raw keyboard code.
-pub type RawKeyCode = u8;
+pub type RawKeyCode = u32;
 
 /// The keyboard code, often corresponding to a physical key.
 ///
@@ -60,6 +60,18 @@ impl From<RawKeyCode> for KeyCode {
 impl From<KeyCode> for RawKeyCode {
     fn from(keycode: KeyCode) -> Self {
         keycode.raw()
+    }
+}
+
+impl From<u8> for KeyCode {
+    fn from(raw: u8) -> Self {
+        Self::new(raw as RawKeyCode)
+    }
+}
+
+impl From<KeyCode> for u8 {
+    fn from(keycode: KeyCode) -> Self {
+        keycode.raw() as u8
     }
 }
 
