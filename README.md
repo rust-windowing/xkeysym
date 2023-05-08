@@ -10,6 +10,6 @@ The Minimum Safe Rust Version for this crate is **1.48.0**.
 
 ## License
 
-This package is distributed under the Boost Software License Version 1.0. Consult the [LICENSE](./LICENSE) file or consult the [web mirror] for more information.
+This package is distributed under the Boost Software License Version 1.0 or the Apache License Version 2.0. Consult the [LICENSE-BOOST](./LICENSE-BOOST)/[LICENSE-APACHE](./LICENSE-APACHE) file or consult the [web mirror] for more information.
 
 [web mirror]: https://www.boost.org/LICENSE_1_0.txt 
