@@ -288,8 +288,6 @@ pub fn keysym(
         }
     }
 
-    // Helps us lower the MSRV.
-    #[allow(clippy::map_clone)]
     keysyms.get(column as usize).map(|&keysym| Keysym(keysym))
 }
 
