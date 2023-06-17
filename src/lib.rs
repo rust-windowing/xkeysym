@@ -12,15 +12,6 @@
 
 use core::fmt;
 
-macro_rules! matches {
-    ($expr:expr, $( $pat:pat )|+ $( if $guard: expr )?) => {
-        match $expr {
-            $( $pat )|+ $( if $guard )? => true,
-            _ => false,
-        }
-    };
-}
-
 #[rustfmt::skip]
 mod automatically_generated;
 pub use automatically_generated::*;
