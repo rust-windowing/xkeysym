@@ -5,7 +5,7 @@ edition = "2018"
 authors = ["John Nunley <jtnunley01@gmail.com>"]
 description = "A library for working with X11 keysyms"
 repository = "https://github.com/notgull/xkeysym"
-license = "BSL-1.0"
+license = "MIT OR Apache-2.0 OR Zlib"
 keywords = ["x11", "keysym", "keysyms"]
 rust-version = "1.48.0"
 
