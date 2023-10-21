@@ -287,16 +287,17 @@ pub const NO_SYMBOL: Keysym = Keysym(0);
 
 /// Get the keyboard symbol from a keyboard code and its column.
 ///
-/// `min_keycode` can be retrieved from the X11 setup, and `keysyms_per_keycode` and `keysyms` can be
+/// `min_keycode` and `max_keycode` can be retrieved from the X11 setup, and `keysyms_per_keycode` and `keysyms` can be
 /// retrieved from the X11 server through the `GetKeyboardMapping` request.
 pub fn keysym(
     keycode: KeyCode,
     mut column: u8,
     min_keycode: KeyCode,
+    max_keycode: KeyCode,
     keysyms_per_keycode: u8,
     keysyms: &[RawKeysym],
 ) -> Option<Keysym> {
-    if column >= keysyms_per_keycode && column > 3 {
+    if column >= keysyms_per_keycode && column > 3 || keycode > max_keycode {
         return None;
     }
 

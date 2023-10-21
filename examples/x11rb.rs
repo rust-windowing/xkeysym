@@ -119,6 +119,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     keycode.into(),
                     0,
                     conn.setup().min_keycode.into(),
+                    conn.setup().max_keycode.into(),
                     mapping.keysyms_per_keycode,
                     mapping.keysyms.as_slice(),
                 );
