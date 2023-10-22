@@ -11,7 +11,7 @@ In addition, this crate contains no unsafe code and is fully compatible with
 
 ## MSRV Policy
 
-The Minimum Safe Rust Version for this crate is **1.48.0**.
+The Minimum Safe Rust Version for this crate is **1.58.1**.
 
 ## License
 
