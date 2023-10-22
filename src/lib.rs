@@ -257,7 +257,7 @@ impl Keysym {
             || ucs > 0x10ffff
             || (ucs & 0xfffe == 0xfffe)
         {
-            return NO_SYMBOL;
+            return Keysym::NoSymbol;
         }
 
         // Search main table.
@@ -283,7 +283,7 @@ impl From<Keysym> for u32 {
 }
 
 /// The "empty" keyboard symbol.
-pub const NO_SYMBOL: Keysym = Keysym(0);
+pub const NO_SYMBOL: Keysym = Keysym::NoSymbol;
 
 /// Get the keyboard symbol from a keyboard code and its column.
 ///
@@ -318,8 +318,8 @@ pub fn keysym(
                     break;
                 }
 
-                // If the keysym we're looking at isn't NO_SYMBOL, we're done.
-                if keysyms[per - 1] != NO_SYMBOL.0 {
+                // If the keysym we're looking at isn't NoSymbol, we're done.
+                if keysyms[per - 1] != Keysym::NoSymbol.0 {
                     break;
                 }
 
@@ -336,7 +336,7 @@ pub fn keysym(
 
         // Convert to upper/lower ourselves if the keysym doesn't support it.
         let alt_column = (column | 1) as usize;
-        if per <= alt_column || keysyms[alt_column] == NO_SYMBOL.0 {
+        if per <= alt_column || keysyms[alt_column] == Keysym::NoSymbol.0 {
             // Convert to upper/lower case.
             let (upper, lower) = convert_case(Keysym(*keysyms.get(column as usize & !1)?));
             return Some(if column & 1 == 0 { upper } else { lower });
@@ -1263,20 +1263,20 @@ mod tests {
         // Unicode non-characters.
 
         // rust doesn't allow building the char from the surrogates.
-        // assert_eq!(Keysym::from_char('\u{d800}'), NO_SYMBOL)); // Unicode surrogates
-        // assert_eq!(Keysym::from_char('\u{dfff}'), NO_SYMBOL)); // Unicode surrogates
+        // assert_eq!(Keysym::from_char('\u{d800}'), Keysym::NoSymbol)); // Unicode surrogates
+        // assert_eq!(Keysym::from_char('\u{dfff}'), Keysym::NoSymbol)); // Unicode surrogates
 
-        assert_eq!(Keysym::from_char('\u{fdd0}'), NO_SYMBOL);
-        assert_eq!(Keysym::from_char('\u{fdef}'), NO_SYMBOL);
-        assert_eq!(Keysym::from_char('\u{fffe}'), NO_SYMBOL);
-        assert_eq!(Keysym::from_char('\u{ffff}'), NO_SYMBOL);
-        assert_eq!(Keysym::from_char('\u{7fffe}'), NO_SYMBOL);
-        assert_eq!(Keysym::from_char('\u{7ffff}'), NO_SYMBOL);
-        assert_eq!(Keysym::from_char('\u{afffe}'), NO_SYMBOL);
-        assert_eq!(Keysym::from_char('\u{affff}'), NO_SYMBOL);
+        assert_eq!(Keysym::from_char('\u{fdd0}'), Keysym::NoSymbol);
+        assert_eq!(Keysym::from_char('\u{fdef}'), Keysym::NoSymbol);
+        assert_eq!(Keysym::from_char('\u{fffe}'), Keysym::NoSymbol);
+        assert_eq!(Keysym::from_char('\u{ffff}'), Keysym::NoSymbol);
+        assert_eq!(Keysym::from_char('\u{7fffe}'), Keysym::NoSymbol);
+        assert_eq!(Keysym::from_char('\u{7ffff}'), Keysym::NoSymbol);
+        assert_eq!(Keysym::from_char('\u{afffe}'), Keysym::NoSymbol);
+        assert_eq!(Keysym::from_char('\u{affff}'), Keysym::NoSymbol);
 
         // Rust doesn't allow codepoints outside the Unicode planes for char.
-        // assert_eq!(Keysym::from_char('\u{110000}', NO_SYMBOL);
-        // assert_eq!(Keysym::from_char('\u{deadbeef}', NO_SYMBOL);
+        // assert_eq!(Keysym::from_char('\u{110000}', Keysym::NoSymbol);
+        // assert_eq!(Keysym::from_char('\u{deadbeef}', Keysym::NoSymbol);
     }
 }
