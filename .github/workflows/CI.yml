@@ -18,93 +18,63 @@
 
 name: CI
 
+permissions:
+  contents: read
 on:
   push:
     branches:
       - master
   pull_request:
+  workflow_dispatch:
 
 env:
   RUSTFLAGS: -Dwarnings
-  clippy_version: 1.60.0
+  CARGO_TERM_COLOR: always
 
 jobs:
-  rustfmt:
-    name: rustfmt
+  CI:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        include:
-          - rust: stable
+        rust:
+          - stable
+          - beta
+          - nightly
+          - 1.48.0
     
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ matrix.rust }}
-          profile: minimal
-          override: true
-          components: rustfmt
-      - uses: Swatinem/rust-cache@v1
-      - name: Run rustfmt
-        run: cargo fmt --check
-   
-  clippy:
-    name: clippy
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ env.clippy_version }}
-          override: true
-          components: clippy
-      - uses: Swatinem/rust-cache@v1
-      - name: Run Clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all --tests --all-features
-
-  test:
-    runs-on: ubuntu-latest 
-    strategy:
-      matrix:
-        toolchain:
-         - stable
-         - beta
-         - nightly
-
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ matrix.toolchain }}
-          override: true
+          toolchain: ${{ matrix.rust }}
+          components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v1
-
-      - name: Test
+      - name: Run rustfmt
+        if: matrix.rust == 'stable' # Avoid differences between the versions
+        run: cargo fmt --check
+      - name: Run Clippy
+        if: matrix.rust == 'stable' # Avoid differences between the versions
+        run: cargo clippy --all-features
+      - name: Check clippy lints for the examples
+        if: matrix.rust == 'stable' # Avoid differences between the versions
+        run: cargo clippy --all-features --examples
+      - name: Check clippy lints for the tests
+        if: matrix.rust == 'stable' # Avoid differences between the versions
+        run: cargo clippy --all-features --tests
+      - name: Build the crate
+        run: cargo build --all-features
+      - name: Build the examples
+        run: cargo build --all-features --examples
+      - name: Run the tests
         run: cargo test
+      - name: Run the tests with all features enabled
+        run: cargo test --all-features
+      - name: Build the docs
+        run: cargo doc
+      - name: Build the docs with all features enabled
+        run: cargo doc --all-features
 
-  msrv:
-    name: Build MSRV
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: 1.48.0
-          override: true
-      - uses: Swatinem/rust-cache@v1
-      - name: Build
-        run: cargo build
-      
-  
