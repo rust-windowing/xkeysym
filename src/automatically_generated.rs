@@ -25,6 +25,8 @@ use super::Keysym;
 pub mod key {
     use crate::RawKeysym;
 
+    #[doc(alias = "XK_NoSymbol")]
+    pub const NoSymbol: RawKeysym = 0x0;
     #[doc(alias = "XK_VoidSymbol")]
     pub const VoidSymbol: RawKeysym = 0xffffff;
     #[doc(alias = "XK_BackSpace")]
@@ -4735,6 +4737,10 @@ pub mod key {
     pub const XF86_VoiceCommand: RawKeysym = 0x10081246;
     #[doc(alias = "XF86XK_Assistant")]
     pub const XF86_Assistant: RawKeysym = 0x10081247;
+    #[doc(alias = "XF86XK_EmojiPicker")]
+    pub const XF86_EmojiPicker: RawKeysym = 0x10081249;
+    #[doc(alias = "XF86XK_Dictate")]
+    pub const XF86_Dictate: RawKeysym = 0x1008124a;
     #[doc(alias = "XF86XK_BrightnessMin")]
     pub const XF86_BrightnessMin: RawKeysym = 0x10081250;
     #[doc(alias = "XF86XK_BrightnessMax")]
@@ -5125,6 +5131,9 @@ pub mod key {
     pub const block: RawKeysym = 0x100000fc;
 }
 impl Keysym {
+    #[doc(alias = "XK_NoSymbol")]
+    /// The "empty" keyboard symbol.
+    pub const NoSymbol: Keysym = Keysym(key::NoSymbol);
     #[doc(alias = "XK_VoidSymbol")]
     pub const VoidSymbol: Keysym = Keysym(key::VoidSymbol);
     #[doc(alias = "XK_BackSpace")]
@@ -9835,6 +9844,10 @@ impl Keysym {
     pub const XF86_VoiceCommand: Keysym = Keysym(key::XF86_VoiceCommand);
     #[doc(alias = "XF86XK_Assistant")]
     pub const XF86_Assistant: Keysym = Keysym(key::XF86_Assistant);
+    #[doc(alias = "XF86XK_EmojiPicker")]
+    pub const XF86_EmojiPicker: Keysym = Keysym(key::XF86_EmojiPicker);
+    #[doc(alias = "XF86XK_Dictate")]
+    pub const XF86_Dictate: Keysym = Keysym(key::XF86_Dictate);
     #[doc(alias = "XF86XK_BrightnessMin")]
     pub const XF86_BrightnessMin: Keysym = Keysym(key::XF86_BrightnessMin);
     #[doc(alias = "XF86XK_BrightnessMax")]
@@ -10229,6 +10242,7 @@ impl Keysym {
 #[allow(unreachable_patterns)]
 pub(crate) const fn name(keysym: Keysym) -> Option<&'static str> {
     match keysym {
+        Keysym::NoSymbol => Some("XK_NoSymbol"),
         Keysym::VoidSymbol => Some("XK_VoidSymbol"),
         Keysym::BackSpace => Some("XK_BackSpace"),
         Keysym::Tab => Some("XK_Tab"),
@@ -12584,6 +12598,8 @@ pub(crate) const fn name(keysym: Keysym) -> Option<&'static str> {
         Keysym::XF86_Screensaver => Some("XF86XK_Screensaver"),
         Keysym::XF86_VoiceCommand => Some("XF86XK_VoiceCommand"),
         Keysym::XF86_Assistant => Some("XF86XK_Assistant"),
+        Keysym::XF86_EmojiPicker => Some("XF86XK_EmojiPicker"),
+        Keysym::XF86_Dictate => Some("XF86XK_Dictate"),
         Keysym::XF86_BrightnessMin => Some("XF86XK_BrightnessMin"),
         Keysym::XF86_BrightnessMax => Some("XF86XK_BrightnessMax"),
         Keysym::XF86_KbdInputAssistPrev => Some("XF86XK_KbdInputAssistPrev"),
