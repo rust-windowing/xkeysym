@@ -57,7 +57,7 @@ fn main() -> Result<()> {
     let outpath = env::args_os().nth(1).expect("output file name");
     let mut outfile = BufWriter::new(fs::File::create(outpath)?);
 
-    writeln!(
+    write!(
         outfile,
         "
 // SPDX-License-Identifier: MIT OR Apache-2.0 OR Zlib
@@ -85,19 +85,26 @@ use super::Keysym;
 /// A list of raw keyboard symbols.
 pub mod key {{
     use crate::RawKeysym;
+
+    #[doc(alias = \"XK_NoSymbol\")]
+    pub const NoSymbol: RawKeysym = 0x0;
 "
     )?;
 
     // Items on the keysym type.
-    let mut keysym_items = "impl Keysym {\n".to_string();
+    let mut keysym_items = "impl Keysym {
+    #[doc(alias = \"XK_NoSymbol\")]
+    /// The \"empty\" keyboard symbol.
+    pub const NoSymbol: Keysym = Keysym(key::NoSymbol);\n"
+        .to_string();
 
     // The matcher for dumping the keysym's name.
     let mut keysym_dump = "
 #[allow(unreachable_patterns)]
 pub(crate) const fn name(keysym: Keysym) -> Option<&'static str> {
     match keysym {
-"
-    .to_string();
+        Keysym::NoSymbol => Some(\"XK_NoSymbol\"),\n"
+        .to_string();
 
     // we're looking for lines of the following form:
     // #define {some prefix}XK_{some key name} {some key code}
