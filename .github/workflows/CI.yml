@@ -52,7 +52,7 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
           components: rustfmt, clippy
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - name: Run rustfmt
         if: matrix.rust == 'stable' # Avoid differences between the versions
         run: cargo fmt --check
