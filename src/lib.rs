@@ -24,7 +24,8 @@
 
 #![no_std]
 #![allow(non_upper_case_globals)]
-#![forbid(unsafe_code, rust_2018_idioms)]
+#![forbid(unsafe_code)]
+#![deny(rust_2018_idioms)]
 
 use core::char;
 use core::fmt;
