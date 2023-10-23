@@ -13,6 +13,15 @@ In addition, this crate contains no unsafe code and is fully compatible with
 
 The Minimum Safe Rust Version for this crate is **1.58.1**.
 
+## Updating Headers
+
+To update the automatically generated keyboard symbols in the
+`automatically_generated.rs` file, install [Just] and run `just`. The process
+creates a Debian Docker container in order to keep the files consistent, so make
+sure Docker is installed first.
+
+[Just]: https://github.com/casey/just
+
 ## License
 
 Licensed under either of
