@@ -103,7 +103,7 @@ pub mod key {{
 #[allow(unreachable_patterns)]
 pub(crate) const fn name(keysym: Keysym) -> Option<&'static str> {
     match keysym {
-        Keysym::NoSymbol => Some(\"XK_NoSymbol\"),\n"
+        Keysym::NoSymbol => Some(\"NoSymbol\"),\n"
         .to_string();
 
     // we're looking for lines of the following form:
@@ -210,7 +210,8 @@ pub(crate) const fn name(keysym: Keysym) -> Option<&'static str> {
                 writeln!(
                     keysym_dump,
                     "        Keysym::{} => Some(\"{}\"),",
-                    &keysym_name, &name
+                    &keysym_name,
+                    &name.replace("XK_", "")
                 )
                 .unwrap();
             }
