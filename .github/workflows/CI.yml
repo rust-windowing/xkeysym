@@ -32,6 +32,22 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  codegen:
+    name: codegen
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just@1.15.0
+      - name: Run codegen
+        run: just
+      - name: Check for git changes
+        run: if ! git diff --exit-code; then exit 1; fi
+
   CI:
     runs-on: ubuntu-latest
     strategy:

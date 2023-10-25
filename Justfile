@@ -17,5 +17,11 @@
 # limitations under the Licenses.
 
 keysyms:
-    cargo run --manifest-path keysym-generator/Cargo.toml \
-        src/automatically_generated.rs
+    docker container run --rm \
+        --name keysym_generator \
+        --mount type=bind,source="$(pwd)",target=/xkeysym \
+        rust:slim \
+        sh -c "apt-get update -y && apt-get install x11proto-core-dev -y --no-install-recommends && \
+        cargo run --manifest-path /xkeysym/keysym-generator/Cargo.toml \
+           /xkeysym/src/automatically_generated.rs"
+
