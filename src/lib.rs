@@ -34,6 +34,9 @@ use core::fmt;
 mod automatically_generated;
 pub use automatically_generated::*;
 
+/// Maximum keysym value
+pub const KEYSYM_MAX: Keysym = Keysym(0x1fffffff);
+
 /// The type of a raw keyboard code.
 pub type RawKeyCode = u32;
 
@@ -128,6 +131,8 @@ impl Keysym {
     }
 
     /// Get a string corresponding to the name of this keyboard symbol.
+    /// Unnamed keysyms representing a Unicode codepoint or invalid
+    /// keysyms return a `None`` value
     ///
     /// The output of this function is not stable and is intended for debugging purposes.
     pub const fn name(self) -> Option<&'static str> {
@@ -162,6 +167,11 @@ impl Keysym {
     /// Tell whether a key is a miscellaneous function key.
     pub const fn is_misc_function_key(self) -> bool {
         matches!(self.0, key::Select..=key::Break)
+    }
+
+    /// Tell whether a key is an unnamed Unicode codepoint.
+    pub const fn is_unnamed_unicode_key(self) -> bool {
+        matches!(self.0, 0x01000000..=0x0110ffff)
     }
 
     /// Tell whether a key is a modifier key.
@@ -1278,5 +1288,42 @@ mod tests {
         // Rust doesn't allow codepoints outside the Unicode planes for char.
         // assert_eq!(Keysym::from_char('\u{110000}', Keysym::NoSymbol);
         // assert_eq!(Keysym::from_char('\u{deadbeef}', Keysym::NoSymbol);
+    }
+
+    #[ignore]
+    #[test]
+    // Test if the Keysym::name() function returns the same names as the
+    // xkbcommon function does for all named keysyms. Keysyms that represent
+    // Unicode codepoints are expected to return different names. Same goes
+    // for other keysyms that have not yet been defined. Sometimes keysyms
+    // are added or removed, so if this test fails, it can also be because
+    // the xkbcommon library has a different version than the version this
+    // xkeysym library was based on.
+    fn keysym_names() {
+        extern crate std;
+        use rayon::prelude::*;
+        use std::string::String;
+        use std::vec::Vec;
+
+        let diffs: Vec<(u32, Option<&str>, String)> = (0..KEYSYM_MAX.0)
+            .into_par_iter()
+            // Names for keysyms representing unicode chars differ
+            .filter(|i| (*i < 0x01000000) | (0x0110ffff < *i)) //  0x01042a3e
+            .filter_map(|i| {
+                let keysym_xkeysym = crate::Keysym::from(i);
+                let keysym_xkb = xkbcommon::xkb::Keysym::from(i);
+                let name_xkeysym = keysym_xkeysym.name();
+                let name_xkb = xkbcommon::xkb::keysym_get_name(keysym_xkb);
+
+                match name_xkeysym {
+                    Some(name) if name_xkb != name => Some((i, name_xkeysym, name_xkb)),
+                    None if name_xkb != std::format!("{i:#010x}") => {
+                        Some((i, name_xkeysym, name_xkb))
+                    }
+                    _ => None,
+                }
+            })
+            .collect();
+        assert!(diffs.is_empty(), "diffs: {:?}", diffs);
     }
 }
