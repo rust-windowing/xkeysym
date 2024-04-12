@@ -21,7 +21,7 @@ keysyms:
         --name keysym_generator \
         --mount type=bind,source="$(pwd)",target=/xkeysym \
         archlinux:base \
-        sh -c "pacman -Syy --noconfirm && pacman -Sy rust xorgproto --noconfirm && \
+        sh -c "pacman -Syu rust xorgproto --noconfirm && \
         cargo run --manifest-path /xkeysym/keysym-generator/Cargo.toml \
            /xkeysym/src/automatically_generated.rs"
 
