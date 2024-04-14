@@ -20,8 +20,8 @@ keysyms:
     docker container run --rm \
         --name keysym_generator \
         --mount type=bind,source="$(pwd)",target=/xkeysym \
-        rust:slim \
-        sh -c "apt-get update -y && apt-get install x11proto-core-dev -y --no-install-recommends && \
+        archlinux:base \
+        sh -c "pacman -Syu rust xorgproto --noconfirm && \
         cargo run --manifest-path /xkeysym/keysym-generator/Cargo.toml \
            /xkeysym/src/automatically_generated.rs"
 
